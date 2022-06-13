@@ -16,5 +16,8 @@
   "bugs": {
     "url": "https://github.com/megsmcbride/tinyApp/issues"
   },
-  "homepage": "https://github.com/megsmcbride/tinyApp#readme"
+  "homepage": "https://github.com/megsmcbride/tinyApp#readme",
+  "dependencies": {
+    "express": "^4.18.1"
+  }
 }
