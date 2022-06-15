@@ -20,7 +20,18 @@ const generateRandomString = (length = 6) => {
   return Math.random().toString(20).substr(2, length);
 }
 
-
+const user = {
+  "userRandomID": {
+    id: "userRandomID",
+    email: "user@email.com",
+    password: "password"
+  },
+  "user2RandomID": {
+    id: "user2RandomID",
+    email: "user@email.com",
+    password: "password"
+  }
+}
 app.get('/', (req, res) => {
   res.send('Hello!');
 });
@@ -35,7 +46,6 @@ app.get('/urls', (req, res) => {
     urls: urlDatabase
   };
   res.render('urls_index', templateVars);
-
 });
 
 app.post('/urls', (req, res) => {
@@ -44,6 +54,26 @@ app.post('/urls', (req, res) => {
   res.redirect(`/urls/${newShortURL}`);
 });
 
+
+app.get('/register', (req, res) => {
+  const templateVars = { 
+    username: req.cookies["username"],
+  };
+  res.render('register', templateVars);
+});
+
+app.post('/register', (req, res) => {
+  let id = generateRandomString();
+  users.push({
+    id: {
+      id,
+      email: req.body.email,
+      password: req.body.password
+    }
+  })
+});
+
+//login and logout
 app.post('/login', (req, res) => {
   res.cookie('username', req.body.username);
   res.redirect('/urls');
@@ -54,6 +84,7 @@ app.post('/logout', (req, res) => {
   res.redirect('/urls');
 });
 
+// new url
 app.get('/urls/new', (req, res) => {
   const templateVars = {
     username: req.cookies["username"],
@@ -61,6 +92,7 @@ app.get('/urls/new', (req, res) => {
   res.render('urls_new', templateVars);
 });
 
+//Short url
 app.get('/urls/:shortURL', (req, res) => {
   const templateVars = {
     shortURL: req.params.shortURL,
@@ -70,16 +102,12 @@ app.get('/urls/:shortURL', (req, res) => {
   res.render('urls_show', templateVars);
 });
 
-app.get('/u/:shortURL', (req, res) => {
-  res.redirect(urlDatabase[req.params.shortURL]);
-});
-
-
 app.post('/urls/:shortURL', (req, res) => {
   urlDatabase[req.params.shortURL] = req.body.longURL;
   res.redirect('/urls');
 });
 
+//delete short url
 app.post('/urls/:shortURL/delete', (req, res) => {
   delete urlDatabase[req.params.shortURL];
   res.redirect('/urls');
