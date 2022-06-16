@@ -53,6 +53,7 @@ const users = {
 };
 
 const urlsForUser = id => {
+  console.log("i am working")
   let userURLs = {}
   for (let shortURL in urlDatabase) {
     if (urlDatabase[shortURL].userID === id) {
@@ -105,13 +106,10 @@ app.get('/urls', (req, res) => {
     }
     return res.status(401).render('error', templateVars)
   }
-
-  let usersURLs = urlsForUser(user_id);
-  if (urlsForUser === {}) {
-  }
+  let userURLs = urlsForUser(user_id)  
   const templateVars = {
     user: users[req.cookies.user_id],
-    urls: usersURLs
+    urls: userURLs
   };
   res.render('urls_index', templateVars);
 });
@@ -135,6 +133,9 @@ app.get('/urls/:shortURL', (req, res) => {
 });
 
 app.post('/urls/:shortURL', (req, res) => {
+  if(!req.cookies.user_id) {
+    return res.status(403).send("Access denied");
+  }
   urlDatabase[req.params.shortURL] = req.body.longURL;
   res.redirect('/urls');
 });
@@ -142,7 +143,6 @@ app.post('/urls/:shortURL', (req, res) => {
 app.get('/register', (req, res) => {
   const templateVars = {
     user: users[req.cookies.user_id],
-    error: null
   };
   res.render('register', templateVars);
 });
@@ -195,12 +195,15 @@ app.post('/login', (req, res) => {
 
 app.post('/logout', (req, res) => {
   res.clearCookie('user_id', req.cookies.user_id);
-  res.redirect('/urls');
+  res.redirect('/login');
 });
 
 
 //delete short url
 app.post('/urls/:shortURL/delete', (req, res) => {
+  if (!req.cookies.user_id) {
+    return res.status(403).send("Access denied");
+  }
   delete urlDatabase[req.params.shortURL];
   res.redirect('/urls');
 });
