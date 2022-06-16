@@ -25,8 +25,10 @@
       <tbody>
         <% for(let url in urls) { %>
           <tr>
-            <td><%= url %></td>
-            <td><%= urls[url] %></td>
+            <td>
+              <a href="<%= urls[url].longURL %>"><%= url %></a>
+            </td>
+            <td><%= urls[url].longURL %></td>
             <td>
               <form method="GET" action="/urls/<%= url%>">
               <button class="btn btn-outline-primary" type="Edit" value="Edit">Edit</button>
