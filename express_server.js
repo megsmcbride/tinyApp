@@ -1,6 +1,8 @@
 const express = require('express');
 const app = express();
 const PORT = 8080;
+const bcrypt = require('bcryptjs');
+
 
 const bodyParser = require('body-parser');
 const res = require('express/lib/response');
@@ -43,17 +45,16 @@ const users = {
   "aJ48lW": {
     id: "aJ48lW",
     email: "user@email.com",
-    password: "password"
+    password: bcrypt.hashSync("password", 10)
   },
   "user2RandomID": {
     id: "user2RandomID",
     email: "user2@email.com",
-    password: "password"
+    password: bcrypt.hashSync("password", 10)
   }
 };
 
 const urlsForUser = id => {
-  console.log("i am working")
   let userURLs = {}
   for (let shortURL in urlDatabase) {
     if (urlDatabase[shortURL].userID === id) {
@@ -153,8 +154,9 @@ app.post('/register', (req, res) => {
   const user = {
     id,
     email: req.body.email,
-    password: req.body.password
+    password: bcrypt.hashSync(password,10)
   };
+  console.log(user)
   if (!email || !password) {
     return res.status(400).send('Invalid email and/or password');
    
@@ -177,6 +179,9 @@ app.get('/login', (req, res) => {
 
 app.post('/login', (req, res) => {
   const { email, password } = req.body;
+
+  const verifyPassword = bcrypt.compareSync(password, getUser(email).password);
+  
   if (!email || !password) {
     return  res.status(400).send('Invalid email and/or password');
     
@@ -185,7 +190,7 @@ app.post('/login', (req, res) => {
   if (!user) {
     return res.status(403).send(`Email address: ${email} cannot be found`);
   }
-  if (user.password !== password) {
+  if (!verifyPassword) {
     return res.status(403).send("Invalid password");
   }
 
