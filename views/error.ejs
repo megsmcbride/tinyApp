@@ -12,12 +12,19 @@
     <%- include('partials/_header') %>
 
     <main style="margin: 1em;">
-    <h3>Error: <%= status %></h3>
-    <div class="alert alert-danger" role="alert">
-      <%= message %>
-    </div>
-  
-
+      <% if (status === 404) { %>
+        <div class="alert alert-danger" role="alert">
+          <%= status %>
+          <%= ":" %>
+          <%= message %>
+        </div>
+      <%  } else if (status === 403) { %>
+        <div class="alert alert-danger" role="alert">
+        <%= status %>
+        <%= ":" %>
+        <%= message %>
+       </div>
+       <% } %>
    
     </main>
 
