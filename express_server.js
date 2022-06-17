@@ -45,9 +45,12 @@ app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
 
+// Checks if user is logged in and redirects to urls page, 
+// if logged out redirects to login page.
 app.get('/', (req, res) => {
   const userID = req.session.userID;
   const user = usersDatabase[userID];
+
   if (!user) {
     return res.redirect('/login');
   }
@@ -58,9 +61,12 @@ app.get('/urls.json', (req, res) => {
   res.json(urlDatabase);
 });
 
+// Checks if user is logged in and returns users urls found in the
+// database then displays to urls page and if logged out displays error message. 
 app.get('/urls', (req, res) => {
   const userID = req.session.userID;
   const user = usersDatabase[userID];
+
   if (!user) {
     const templateVars = {
       message: "User is not logged in",
@@ -69,6 +75,7 @@ app.get('/urls', (req, res) => {
     };
     return res.status(401).render('urls_index', templateVars);
   }
+
   let userURLs = urlsForUser(userID, urlDatabase);
   const templateVars = {
     user: usersDatabase[req.session.userID],
@@ -77,14 +84,19 @@ app.get('/urls', (req, res) => {
   res.render('urls_index', templateVars);
 });
 
+// Generates random id for when creating shotURL and saves to the url database with userID.
 app.post('/urls', (req, res) => {
   let newShortURL = generateRandomString();
   urlDatabase[newShortURL] = { longURL: req.body.longURL, userID: req.session.userID };
   res.redirect(`/urls/${newShortURL}`);
 });
 
+// Checks if user is logged in and displays create new url page
+// if logged out redirects to login.
 app.get('/urls/new', (req, res) => {
-  if (!req.session.userID) {
+  const userID = req.session.userID;
+  const user = usersDatabase[userID];
+  if (!user) {
     return res.redirect('/login');
   }
   const templateVars = {
@@ -93,6 +105,8 @@ app.get('/urls/new', (req, res) => {
   res.render('urls_new', templateVars);
 });
 
+// Checks if shortURL exists in database, if found takes to the matching longURL 
+// if not found displays error message.
 app.get('/u/:shortURL', (req, res) => {
   let shortURL = req.params.shortURL;
   if (!urlDatabase[shortURL]) {
@@ -107,6 +121,9 @@ app.get('/u/:shortURL', (req, res) => {
   res.redirect(longURL);
 });
 
+// Checks if user is logged in, if the the shortURL exists in database and if the userID matches the shortURLs id
+// if any of are false dispalys error page
+// if all are true displays the urls_show page for the shortURL.
 app.get('/urls/:shortURL', (req, res) => {
   const userID = req.session.userID;
   const user = usersDatabase[userID];
@@ -140,21 +157,26 @@ app.get('/urls/:shortURL', (req, res) => {
   res.render('urls_show', templateVars);
 });
 
+// Saves created shortURL to url database.
 app.post('/urls/:shortURL', (req, res) => {
-
   urlDatabase[req.params.shortURL] = { longURL: req.body.longURL, userID: req.session.userID };
   res.redirect('/urls');
 
 });
 
+// Checks if user is logged in and allows them to delete their own urls.
 app.post('/urls/:shortURL/delete', (req, res) => {
-  if (!req.session.userID) {
+  const userID = req.session.userID;
+  const user = usersDatabase[userID];
+  if (!user) {
     return res.status(403).send("Access denied");
   }
   delete urlDatabase[req.params.shortURL];
   res.redirect('/urls');
 });
 
+// Checks if user is logged in and redirects to urls page
+// if not logged in dispalys register page.
 app.get('/register', (req, res) => {
   const userID = req.session.userID;
   const user = usersDatabase[userID];
@@ -167,6 +189,9 @@ app.get('/register', (req, res) => {
   res.render('register', templateVars);
 });
 
+// Checks if email and password are valid displaying error if not
+// Checks if user exists in database displaying error if found
+// If valid email and password saves to userDatabase with password encryption.
 app.post('/register', (req, res) => {
   const { email, password } = req.body;
   let userID = generateRandomString();
@@ -196,7 +221,15 @@ app.post('/register', (req, res) => {
   res.redirect('/urls');
 });
 
+// Checks if user is logged in and redirect to urls if true
+// If logged out then displays login page
 app.get('/login', (req, res) => {
+  const userID = req.session.userID;
+  const user = usersDatabase[userID];
+  if (user) {
+    return res.redirect('urls');
+  }
+
   const templateVars = {
     user: usersDatabase[req.session.userID],
     message: null,
@@ -205,6 +238,9 @@ app.get('/login', (req, res) => {
   res.render('login', templateVars);
 });
 
+// Checks if email is in user database, if not found displays error
+// Checks if inputted password matches store email password
+// If matches redirects to urls page, if invalid then displays error
 app.post('/login', (req, res) => {
   const { email, password } = req.body;
   const user = getUser(email, usersDatabase);
@@ -231,6 +267,7 @@ app.post('/login', (req, res) => {
   res.redirect('/urls');
 });
 
+//deletes user cookie when logged in and logout
 app.post('/logout', (req, res) => {
   req.session = null;
   res.redirect('/login');
