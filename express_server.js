@@ -137,9 +137,17 @@ app.get('/urls/:shortURL', (req, res) => {
     return res.status(404).render('error', templateVars);
   }
 
-  const verifyURLUser = urlDatabase[req.params.shortURL].userID === user;
-
-  if (!user || !verifyURLUser) {
+  if (!user){
+    
+    const templateVars = {
+      message: "Access denied",
+      status: 403,
+      user: null
+    };
+    return res.status(403).render('error', templateVars);
+  }
+  
+  if (!urlDatabase[req.params.shortURL].userID === user) {
     const templateVars = {
       message: "Access denied",
       status: 403,
@@ -185,6 +193,8 @@ app.get('/register', (req, res) => {
   }
   const templateVars = {
     user: usersDatabase[req.session.userID],
+    status: null,
+    message: null
   };
   res.render('register', templateVars);
 });
