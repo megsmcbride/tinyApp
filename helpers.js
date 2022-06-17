@@ -7,5 +7,19 @@ const getUser = (email, usersDatabase) => {
   return false;
 };
 
-module.exports = { getUser }
+const generateRandomString = (length = 6) => {
+  return Math.random().toString(20).substr(2, length);
+};
+
+
+const urlsForUser = (id, urlDatabase) => {
+  let userURLs = {}
+  for (let shortURL in urlDatabase) {
+    if (urlDatabase[shortURL].userID === id) {
+      userURLs[shortURL] = { ...urlDatabase[shortURL] }
+      }
+    }
+  return userURLs
+}
+module.exports = { getUser, generateRandomString, urlsForUser }
 
