@@ -41,11 +41,8 @@ const usersDatabase = {
 };
 
 
-app.listen(PORT, () => {
-  console.log(`Example app listening on port ${PORT}!`);
-});
 
-// Checks if user is logged in and redirects to urls page, 
+// Checks if user is logged in and redirects to urls page,
 // if logged out redirects to login page.
 app.get('/', (req, res) => {
   const userID = req.session.userID;
@@ -62,7 +59,7 @@ app.get('/urls.json', (req, res) => {
 });
 
 // Checks if user is logged in and returns users urls found in the
-// database then displays to urls page and if logged out displays error message. 
+// database then displays to urls page and if logged out displays error message.
 app.get('/urls', (req, res) => {
   const userID = req.session.userID;
   const user = usersDatabase[userID];
@@ -76,7 +73,7 @@ app.get('/urls', (req, res) => {
     return res.status(401).render('urls_index', templateVars);
   }
 
-  let userURLs = urlsForUser(userID, urlDatabase);
+  const userURLs = urlsForUser(userID, urlDatabase);
   const templateVars = {
     user: usersDatabase[req.session.userID],
     urls: userURLs
@@ -86,7 +83,7 @@ app.get('/urls', (req, res) => {
 
 // Generates random id for when creating shotURL and saves to the url database with userID.
 app.post('/urls', (req, res) => {
-  let newShortURL = generateRandomString();
+  const newShortURL = generateRandomString();
   urlDatabase[newShortURL] = { longURL: req.body.longURL, userID: req.session.userID };
   res.redirect(`/urls/${newShortURL}`);
 });
@@ -105,10 +102,10 @@ app.get('/urls/new', (req, res) => {
   res.render('urls_new', templateVars);
 });
 
-// Checks if shortURL exists in database, if found takes to the matching longURL 
+// Checks if shortURL exists in database, if found takes to the matching longURL
 // if not found displays error message.
 app.get('/u/:shortURL', (req, res) => {
-  let shortURL = req.params.shortURL;
+  const shortURL = req.params.shortURL;
   if (!urlDatabase[shortURL]) {
     const templateVars = {
       message: "Page does not exist",
@@ -117,18 +114,19 @@ app.get('/u/:shortURL', (req, res) => {
     };
     return res.status(404).render('error', templateVars);
   }
-  let longURL = urlDatabase[shortURL].longURL;
+  const longURL = urlDatabase[shortURL].longURL;
   res.redirect(longURL);
 });
 
 // Checks if user is logged in, if the the shortURL exists in database and if the userID matches the shortURLs id
-// if any of are false dispalys error page
+// if any are false dispalys error page
 // if all are true displays the urls_show page for the shortURL.
 app.get('/urls/:shortURL', (req, res) => {
   const userID = req.session.userID;
   const user = usersDatabase[userID];
+  const shortURL = req.params.shortURL;
 
-  if (!urlDatabase[req.params.shortURL]) {
+  if (!urlDatabase[shortURL]) {
     const templateVars = {
       message: "Page does not exist",
       status: 404,
@@ -137,17 +135,7 @@ app.get('/urls/:shortURL', (req, res) => {
     return res.status(404).render('error', templateVars);
   }
 
-  if (!user){
-    
-    const templateVars = {
-      message: "Access denied",
-      status: 403,
-      user: null
-    };
-    return res.status(403).render('error', templateVars);
-  }
-  
-  if (!urlDatabase[req.params.shortURL].userID === user) {
+  if (!user) {
     const templateVars = {
       message: "Access denied",
       status: 403,
@@ -156,10 +144,20 @@ app.get('/urls/:shortURL', (req, res) => {
     return res.status(403).render('error', templateVars);
   }
 
+
+  if (!(urlDatabase[shortURL].userID === user.id)) {
+    const templateVars = {
+      message: "Access denied",
+      status: 403,
+      user: user
+    };
+    return res.status(403).render('error', templateVars);
+  }
+
   const templateVars = {
     shortURL: req.params.shortURL,
     longURL: urlDatabase[req.params.shortURL].longURL,
-    user: usersDatabase[req.session.userID]
+    user: user
   };
 
   res.render('urls_show', templateVars);
@@ -179,6 +177,7 @@ app.post('/urls/:shortURL/delete', (req, res) => {
   if (!user) {
     return res.status(403).send("Access denied");
   }
+
   delete urlDatabase[req.params.shortURL];
   res.redirect('/urls');
 });
@@ -249,7 +248,7 @@ app.get('/login', (req, res) => {
 });
 
 // Checks if email is in user database, if not found displays error
-// Checks if inputted password matches store email password
+// Checks if inputted password matches stored email password
 // If matches redirects to urls page, if invalid then displays error
 app.post('/login', (req, res) => {
   const { email, password } = req.body;
@@ -281,4 +280,8 @@ app.post('/login', (req, res) => {
 app.post('/logout', (req, res) => {
   req.session = null;
   res.redirect('/login');
+});
+
+app.listen(PORT, () => {
+  console.log(`Example app listening on port ${PORT}!`);
 });
